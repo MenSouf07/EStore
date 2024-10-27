@@ -1,0 +1,25 @@
+DELIMITER //
+
+CREATE TRIGGER update_avg_rating
+AFTER INSERT ON Review
+FOR EACH ROW
+BEGIN
+    DECLARE new_avg_rating DECIMAL(2, 1);
+    DECLARE review_count INT;
+
+    -- Calcul de la nouvelle moyenne des notes pour le produit
+    SELECT AVG(rating), COUNT(*) INTO new_avg_rating, review_count
+    FROM Review
+    WHERE order_id IN (
+        SELECT order_id
+        FROM Customer_Order
+        WHERE product_id = (SELECT product_id FROM Customer_Order WHERE order_id = NEW.order_id)
+    );
+
+    -- Mise à jour du produit avec la nouvelle moyenne des notes
+    UPDATE Product
+    SET avg_rating = new_avg_rating, review_count = review_count
+    WHERE product_id = (SELECT product_id FROM Customer_Order WHERE order_id = NEW.order_id);
+END //
+
+DELIMITER ;

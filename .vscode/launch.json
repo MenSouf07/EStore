@@ -1,0 +1,57 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "HelloWorldSwing",
+            "request": "launch",
+            "mainClass": "HelloWorldSwing",
+            "projectName": "EStore_2765e266"
+        },
+        {
+            "type": "java",
+            "name": "WindowBuilder",
+            "request": "launch",
+            "mainClass": "WindowBuilder",
+            "projectName": "EStore_2765e266"
+        },
+        {
+            "type": "java",
+            "name": "CreditCard",
+            "request": "launch",
+            "mainClass": "store.CreditCard",
+            "projectName": "EStore_2765e266"
+        },
+        {
+            "type": "java",
+            "name": "DataBaseOperations",
+            "request": "launch",
+            "mainClass": "BDD.DataBaseOperations",
+            "projectName": "EStore_2765e266"
+        },
+        {
+            "type": "java",
+            "name": "BDDConnection",
+            "request": "launch",
+            "mainClass": "BDD.BDDConnection",
+            "projectName": "EStore_2765e266"
+        },
+        {
+            "type": "java",
+            "name": "DataBaseConnection",
+            "request": "launch",
+            "mainClass": "BDD.DataBaseConnection",
+            "projectName": "EStore_2765e266"
+        },
+        {
+            "type": "java",
+            "name": "Exécuter le projet",
+            "request": "launch",
+            "mainClass": "Execution",
+            "classPaths": [
+                "lib/mysql-connector-j-9.0.0.jar",
+                "bin"
+            ]
+        }
+    ]
+}
