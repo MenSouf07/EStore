@@ -3,6 +3,20 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CreditCard",
+            "request": "launch",
+            "mainClass": "store.CreditCard",
+            "projectName": "EStore_fde30e63"
+        },
+        {
+            "type": "java",
+            "name": "DataBaseConnection",
+            "request": "launch",
+            "mainClass": "BDD.DataBaseConnection",
+            "projectName": "EStore_fde30e63"
+        },
+        {
+            "type": "java",
             "name": "HelloWorldSwing",
             "request": "launch",
             "mainClass": "HelloWorldSwing",

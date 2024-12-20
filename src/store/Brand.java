@@ -1,7 +1,5 @@
 package store;
 
-
-
 public class Brand {
     private int id;
     private String name;
@@ -32,7 +30,9 @@ public class Brand {
         this.name = name;
     }
 
-
+    /**
+     * Allows to check if the constraints of the associated SQL table are respected
+     */
     public boolean constraintCheck(int i, String n){
         if ((i<1) || (n == null) || (n.length() > 50)){
             //System.out.println(i + " / " + n);
@@ -48,6 +48,7 @@ public class Brand {
         this.id = i;
         this.name = n;
     }
+
     public Brand(String n){
         if (!constraintCheck(1,n)){
             throw new IllegalArgumentException("Constraint(s) not respected");
@@ -78,6 +79,10 @@ public class Brand {
         );
     }
 
+    /**
+     * utilité ??
+     *  je pense que ca ne sert a rien
+     */
     public void update(Brand c){
         //this.id = c.getId();
         this.name = c.getName();

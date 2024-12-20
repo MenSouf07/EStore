@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 import store.*;
@@ -96,7 +97,7 @@ public class DataBaseOperations {
             preparedStatement.setInt(2, b1.getId());
 
             int rowsAffected = preparedStatement.executeUpdate();
-            b1.update(b2);
+            b1.update(b2); //on devrait pas changer pour b1.setName(b2.getName()); ??
             System.out.println(rowsAffected + " ligne(s) mise(s) à jour.");
         } catch (SQLIntegrityConstraintViolationException e) {
             throw new SQLIntegrityConstraintViolationException("Erreur lors de la mise à jour du n-uplet ! \n" + //
@@ -126,7 +127,7 @@ public class DataBaseOperations {
 
 
     
-    public static ArrayList<ProductCategory> getAllProductCategory(Connection connection) throws SQLException {
+    public static ArrayList<ProductCategory> getAllProductCategories(Connection connection) throws SQLException {
         String query = "SELECT * FROM Product_Category";
 
         ArrayList<ProductCategory> list_category = new ArrayList<>();
@@ -241,13 +242,13 @@ public class DataBaseOperations {
 
 
 
-    public static ArrayList<CreditCard> getAllCreditCard(Connection connection) throws SQLException {
+    public static ArrayList<CreditCard> getAllCreditCards(Connection connection) throws SQLException {
         String query = "SELECT * FROM Credit_Card";
 
         ArrayList<CreditCard> list_card = new ArrayList<>();
         
         try (PreparedStatement preparedStatement = connection.prepareStatement(query);
-             ResultSet resultSet = preparedStatement.executeQuery()) {
+            ResultSet resultSet = preparedStatement.executeQuery()) {
              
             while (resultSet.next()) {
                 int card_id = resultSet.getInt("card_id");
@@ -405,6 +406,66 @@ public class DataBaseOperations {
 
 
 
+
+
+//a verifier
+    public static ArrayList<Review> getAllReviews(Connection connection) throws SQLException {
+        String query = "SELECT * FROM Review";
+        
+        ArrayList<Review> list_review = new ArrayList<>();
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query);
+             ResultSet resultSet = preparedStatement.executeQuery()) {
+             
+            while (resultSet.next()) {
+                int reviewId = resultSet.getInt("review_id");
+                int orderId = resultSet.getInt("order_id");
+                float rating = resultSet.getFloat("rating");
+                String commentTitle = resultSet.getString("comment_title");
+                String comment = resultSet.getString("comment");
+                LocalDateTime date = resultSet.getTimestamp("created_at").toLocalDateTime();
+
+                Review r = new Review(reviewId, orderId, rating, commentTitle, comment, date);
+                list_review.add(r);
+
+                System.out.println("ID: " + reviewId + ", Order ID: " + orderId + ", Rating: " + rating + 
+                                   ", Title: " + commentTitle + ", Comment: " + comment);
+            }
+        } catch (SQLException e) {
+            throw new SQLException("Erreur lors de la récupération des avis : " + e.getMessage());
+            //System.err.println("Erreur lors de la récupération des avis : " + e.getMessage());
+        }
+        return list_review;
+    }
+
+    public static ArrayList<Review> getReviewsBasedOnOrder(Connection connection, int oID) throws SQLException {
+        String query = "SELECT * FROM Review WHERE order_id = ?";
+
+        ArrayList<Review> list_review = new ArrayList<>();
+        
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setInt(1, oID);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                int reviewId = resultSet.getInt("review_id");
+                int orderId = resultSet.getInt("order_id");
+                float rating = resultSet.getFloat("rating");
+                String commentTitle = resultSet.getString("comment_title");
+                String comment = resultSet.getString("comment");
+                LocalDateTime date = resultSet.getTimestamp("created_at").toLocalDateTime();
+
+                Review r = new Review(reviewId, orderId, rating, commentTitle, comment, date);
+                list_review.add(r);
+            }
+        } catch (SQLException e) {
+            throw new SQLException("Erreur lors de la récupération des cartes : " + e.getMessage());
+            //System.err.println("Erreur lors de la récupération des cartes : " + e.getMessage());
+        }
+        return list_review;
+    }
+//je me suis arrete la
+
     public static void insertReview(Connection connection, int orderId, double rating, String commentTitle, String comment) throws SQLException {
         String query = "INSERT INTO Review (order_id, rating, comment_title, comment) VALUES (?, ?, ?, ?)";
         
@@ -430,27 +491,6 @@ public class DataBaseOperations {
         } catch (SQLException e) {
             throw new SQLException("Erreur lors de l'insertion : " + e.getMessage());
             //System.err.println("Erreur lors de l'insertion : " + e.getMessage());
-        }
-    }
-
-    public static void getReviews(Connection connection) throws SQLException {
-        String query = "SELECT * FROM Review";
-        
-        try (PreparedStatement preparedStatement = connection.prepareStatement(query);
-             ResultSet resultSet = preparedStatement.executeQuery()) {
-             
-            while (resultSet.next()) {
-                int reviewId = resultSet.getInt("review_id");
-                int orderId = resultSet.getInt("order_id");
-                double rating = resultSet.getDouble("rating");
-                String commentTitle = resultSet.getString("comment_title");
-                String comment = resultSet.getString("comment");
-                System.out.println("ID: " + reviewId + ", Order ID: " + orderId + ", Rating: " + rating + 
-                                   ", Title: " + commentTitle + ", Comment: " + comment);
-            }
-        } catch (SQLException e) {
-            throw new SQLException("Erreur lors de la récupération des avis : " + e.getMessage());
-            //System.err.println("Erreur lors de la récupération des avis : " + e.getMessage());
         }
     }
 
@@ -503,7 +543,7 @@ public class DataBaseOperations {
             // Afficher tous les avis
             DataBaseOperations.getReviews(connection);
 */ 
-            ArrayList<CreditCard> l = DataBaseOperations.getAllCreditCard(connection);
+            ArrayList<CreditCard> l = DataBaseOperations.getAllCreditCards(connection);
             System.out.println(l);
 
             CreditCard c = l.get(0);
@@ -597,7 +637,7 @@ public class DataBaseOperations {
         try (Connection connection = dbCo.getConnection()) {
             System.out.println("Connexion réussie !");
          
-            ArrayList<ProductCategory> l = DataBaseOperations.getAllProductCategory(connection);
+            ArrayList<ProductCategory> l = DataBaseOperations.getAllProductCategories(connection);
             System.out.println(l);
 
             ProductCategory c = l.get(0);
