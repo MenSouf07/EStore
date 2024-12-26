@@ -172,4 +172,14 @@ public class Review {
     public Review clone() {
         return new Review(id, orderId, rating, commentTitle, comment, reviewDate);
     }
+
+    public void update(Review r){
+        //this.orderId = r.getOrderId();
+        this.id = r.getId();
+        this.rating = r.getRating();
+        this.commentTitle = r.getCommentTitle();
+        this.comment = r.getComment();
+        this.reviewDate = r.getReviewDate();
+    }
+
 }

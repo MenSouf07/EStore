@@ -407,7 +407,6 @@ public class DataBaseOperations {
 
 
 
-
 //a verifier
     public static ArrayList<Review> getAllReviews(Connection connection) throws SQLException {
         String query = "SELECT * FROM Review";
@@ -428,8 +427,8 @@ public class DataBaseOperations {
                 Review r = new Review(reviewId, orderId, rating, commentTitle, comment, date);
                 list_review.add(r);
 
-                System.out.println("ID: " + reviewId + ", Order ID: " + orderId + ", Rating: " + rating + 
-                                   ", Title: " + commentTitle + ", Comment: " + comment);
+                //System.out.println("ID: " + reviewId + ", Order ID: " + orderId + ", Rating: " + rating + 
+                //                   ", Title: " + commentTitle + ", Comment: " + comment);
             }
         } catch (SQLException e) {
             throw new SQLException("Erreur lors de la récupération des avis : " + e.getMessage());
@@ -438,7 +437,8 @@ public class DataBaseOperations {
         return list_review;
     }
 
-    public static ArrayList<Review> getReviewsBasedOnOrder(Connection connection, int oID) throws SQLException {
+    //je devrais refaire la fonction pour qu'elle renvoie juste un objet Review vu que 1commande=1review
+    public static ArrayList<Review> getReviewBasedOnOrderId(Connection connection, int oID) throws SQLException {
         String query = "SELECT * FROM Review WHERE order_id = ?";
 
         ArrayList<Review> list_review = new ArrayList<>();
@@ -464,16 +464,15 @@ public class DataBaseOperations {
         }
         return list_review;
     }
-//je me suis arrete la
 
-    public static void insertReview(Connection connection, int orderId, double rating, String commentTitle, String comment) throws SQLException {
+    public static void insertReview(Connection connection, Review r) throws SQLException {
         String query = "INSERT INTO Review (order_id, rating, comment_title, comment) VALUES (?, ?, ?, ?)";
         
         try (PreparedStatement preparedStatement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
-            preparedStatement.setInt(1, orderId);
-            preparedStatement.setDouble(2, rating);
-            preparedStatement.setString(3, commentTitle);
-            preparedStatement.setString(4, comment);
+            preparedStatement.setInt(1, r.getOrderId());
+            preparedStatement.setDouble(2, r.getRating());
+            preparedStatement.setString(3, r.getCommentTitle());
+            preparedStatement.setString(4, r.getComment());
             
             int rowsAffected = preparedStatement.executeUpdate();
             System.out.println(rowsAffected + " ligne(s) insérée(s).");
@@ -482,39 +481,51 @@ public class DataBaseOperations {
             try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     int generatedId = generatedKeys.getInt(1);
+                    r.setId(generatedId);
                     System.out.println("ID de la revue insérée : " + generatedId);
                 } else {
                     System.out.println("Aucune clé générée n'a été récupérée.");
                 }
             }
             
+        } catch (SQLIntegrityConstraintViolationException e) {
+            throw new SQLIntegrityConstraintViolationException("Erreur lors de l'insertion d'un n-uplet ! \n" + //
+                                "Erreur d'unicité : une review avec ce numéro existe déjà.");
+            //System.err.println("Erreur lors de l'insertion d'un n-uplet ! \n" + //
+            //                    "Erreur d'unicité : une carte avec ce numéro existe déjà.");
         } catch (SQLException e) {
-            throw new SQLException("Erreur lors de l'insertion : " + e.getMessage());
-            //System.err.println("Erreur lors de l'insertion : " + e.getMessage());
+            throw new SQLException("Erreur lors de l'insertion d'un n-uplet : " + e.getMessage());
+            //System.err.println("Erreur lors de l'insertion d'un n-uplet : " + e.getMessage());
         }
     }
 
-    public static void updateReview(Connection connection, int reviewId, double newRating, String newCommentTitle, String newComment) throws SQLException {
+    public static void updateReview(Connection connection, Review r1, Review r2) throws SQLException {
         String query = "UPDATE Review SET rating = ?, comment_title = ?, comment = ? WHERE review_id = ?";
         
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setDouble(1, newRating);
-            preparedStatement.setString(2, newCommentTitle);
-            preparedStatement.setString(3, newComment);
-            preparedStatement.setInt(4, reviewId);
+            preparedStatement.setDouble(1, r2.getRating());
+            preparedStatement.setString(2, r2.getCommentTitle());
+            preparedStatement.setString(3, r2.getComment());
+            preparedStatement.setInt(4, r1.getId());
             int rowsAffected = preparedStatement.executeUpdate();
+            r1.update(r2);
             System.out.println(rowsAffected + " ligne(s) mise(s) à jour.");
+        } catch (SQLIntegrityConstraintViolationException e) {
+            throw new SQLIntegrityConstraintViolationException("Erreur lors de la mise à jour du n-uplet ! \n" + //
+                                "Erreur d'unicité : une review avec ce numéro existe déjà.");
+            //System.err.println("Erreur lors de la mise à jour du n-uplet ! \n" + //
+            //                    "Erreur d'unicité : une carte avec ce numéro existe déjà.");
         } catch (SQLException e) {
-            throw new SQLException("Erreur lors de la mise à jour de l'avis : " + e.getMessage());
-            //System.err.println("Erreur lors de la mise à jour de l'avis : " + e.getMessage());
+            throw new SQLException("Erreur lors de la mise à jour du n-uplet : " + e.getMessage());
+            //System.err.println("Erreur lors de la mise à jour du n-uplet : " + e.getMessage());
         }
     }
 
-    public static void deleteReview(Connection connection, int reviewId) throws SQLException {
+    public static void deleteReview(Connection connection, Review r) throws SQLException {
         String query = "DELETE FROM Review WHERE review_id = ?";
         
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setInt(1, reviewId);
+            preparedStatement.setInt(1, r.getId());
             int rowsAffected = preparedStatement.executeUpdate();
             System.out.println(rowsAffected + " ligne(s) supprimée(s).");
         } catch (SQLException e) {
@@ -524,7 +535,49 @@ public class DataBaseOperations {
     }
 
 
+    public static void TestFunctionReview(){
+        DataBaseConnection dbCo = new DataBaseConnection();
+        try (Connection connection = dbCo.getConnection()) {
+            System.out.println("Connexion réussie !");
+         
+            ArrayList<Review> l = DataBaseOperations.getAllReviews(connection);
+            System.out.println(l);
 
+            Review r = l.get(0);
+            for (Review re : l){
+                System.out.println(r.equals(re) + " review : "+ r);
+            }
+
+            l = DataBaseOperations.getReviewBasedOnOrderId(connection,2);
+            System.out.println(l);
+            System.out.println();
+
+            Review new_r = new Review(4, 5, "TEST", "Ceci est une review test !");
+            System.out.println("id review test : " + new_r.getId());
+            DataBaseOperations.insertReview(connection, new_r);
+            System.out.println("id review test : " + new_r.getId());
+            System.out.println();
+
+            Review clone = new_r.clone();
+            clone.setComment("Rename Comment Test");
+
+            System.out.println(new_r);
+            System.out.println(clone);
+            System.out.println();
+            DataBaseOperations.updateReview(connection, new_r, clone);
+            System.out.println(new_r);
+            System.out.println(clone);
+            System.out.println();
+
+            int bid = new_r.getId();
+            DataBaseOperations.deleteReview(connection, new_r);
+            l = DataBaseOperations.getReviewBasedOnOrderId(connection, bid);
+            System.out.println(l);
+
+        } catch (SQLException e) {
+            System.err.println("Erreur de connexion : " + e.getMessage());
+        }
+    }
     public static void TestFunctionCreditCard(){
         DataBaseConnection dbCo = new DataBaseConnection();
         try (Connection connection = dbCo.getConnection()) {
@@ -677,7 +730,7 @@ public class DataBaseOperations {
     }
 
     public static void main(String[] args) {
-        TestFunctionProductCategory();
+        TestFunctionReview();
     }
     
 
